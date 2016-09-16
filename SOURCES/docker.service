@@ -3,7 +3,6 @@ Description=Docker Application Container Engine
 Documentation=http://docs.docker.com
 After=network.target
 Wants=docker-storage-setup.service
-Requires=rhel-push-plugin.socket
 
 [Service]
 Type=notify
@@ -13,7 +12,6 @@ EnvironmentFile=-/etc/sysconfig/docker-storage
 EnvironmentFile=-/etc/sysconfig/docker-network
 Environment=GOTRACEBACK=crash
 ExecStart=/usr/bin/docker-current daemon \
-          --authorization-plugin=rhel-push-plugin \
           --exec-opt native.cgroupdriver=systemd \
           $OPTIONS \
           $DOCKER_STORAGE_OPTIONS \
