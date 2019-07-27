@@ -43,6 +43,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.tree.DefaultTreeModel;
@@ -59,6 +62,7 @@ import org.openide.util.RequestProcessor;
 class ExplorerModelBuilder implements DataChangeListener<DataSource> {
     
     private static final RequestProcessor queue = new RequestProcessor("Explorer Builder Processor");   // NOI18N
+    private static final ExecutorService executor = Executors.newCachedThreadPool();
     
     private static ExplorerModelBuilder instance;
     
@@ -145,22 +149,46 @@ class ExplorerModelBuilder implements DataChangeListener<DataSource> {
         });
 
         try {
+            List<Future> futures = new ArrayList();
             for (DataSource dataSource : addedDisplayable) {
                 if (dataSource != DataSource.ROOT) {
-                    final ExplorerNode node = new ExplorerNode(dataSource);
-                    addedNodes.add(node);
-                    DataSourceDescriptor descriptor = DataSourceDescriptorFactory.getDescriptor(dataSource);
-                    PropertyChangeListener descriptorListener = new PropertyChangeListener() {
-                        public void propertyChange(final PropertyChangeEvent evt) {
-                            queue.post(new Runnable() {
-                                public void run() { updateNode(node, evt); }
-                            });
+                    futures.add(executor.submit(new Runnable() {
+                        public void run() {
+                            final ExplorerNode node = new ExplorerNode(dataSource);
+                            synchronized(addedNodes) {
+                                addedNodes.add(node);
+                            }
+                            DataSourceDescriptor descriptor = DataSourceDescriptorFactory.getDescriptor(dataSource);
+                            PropertyChangeListener descriptorListener = new PropertyChangeListener() {
+                                public void propertyChange(final PropertyChangeEvent evt) {
+                                    queue.post(new Runnable() {
+                                        public void run() { updateNode(node, evt); }
+                                    });
+                                }
+                            };
+                            descriptor.addPropertyChangeListener(descriptorListener);
+                            synchronized(descriptorListeners) {
+                                descriptorListeners.put(descriptor, descriptorListener);
+                            }
+                            updateNode(node, descriptor);
                         }
-                    };
-                    descriptor.addPropertyChangeListener(descriptorListener);
-                    descriptorListeners.put(descriptor, descriptorListener);
-                    updateNode(node, descriptor);
+                    }));
                 }
+            }
+            RuntimeException ex = null;
+            for (Future future : futures) {
+                try {
+                    future.get();
+                } catch (Exception e) {
+                    if (ex == null) {
+                        ex = new RuntimeException(e);
+                    } else {
+                        ex.addSuppressed(e);
+                    }
+                }
+            }
+            if (ex != null) {
+                throw ex;
             }
         } finally {
             SwingUtilities.invokeLater(new Runnable() {
