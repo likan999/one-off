@@ -46,6 +46,9 @@
 #  include <ndir.h>
 # endif
 #endif
+#if !defined(HAVE_FCNTL_CLOSEM) && defined(HAVE_LIBPROC_H) && HAVE_DECL_PROC_PIDINFO
+#include <libproc.h>
+#endif
 
 #ifndef OPEN_MAX
 # define OPEN_MAX	256
@@ -63,6 +66,26 @@ void
 closefrom(int lowfd)
 {
     (void) fcntl(lowfd, F_CLOSEM, 0);
+}
+#elif defined(HAVE_LIBPROC_H) && HAVE_DECL_PROC_PIDINFO
+void
+closefrom(int lowfd)
+{
+    int bufsize, i, n, fd;
+    pid_t pid;
+    struct proc_fdinfo *fdinfo_buf;
+
+    pid = getpid();
+    bufsize = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, NULL, 0);
+    if (bufsize <= 0) return;
+    fdinfo_buf = (struct proc_fdinfo*) malloc(bufsize);
+    if (fdinfo_buf == NULL) return;
+    bufsize = proc_pidinfo(pid, PROC_PIDLISTFDS, 0, fdinfo_buf, bufsize);
+    for (i = 0, n = bufsize / PROC_PIDLISTFD_SIZE; i < n; ++i) {
+        fd = fdinfo_buf[i].proc_fd;
+        if (fd >= lowfd) close(fd);
+    }
+    free(fdinfo_buf);
 }
 #else
 void

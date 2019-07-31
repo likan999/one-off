@@ -679,6 +679,9 @@ main() { if (NSVersionOfRunTimeLibrary("System") >= (60 << 16))
 	AC_CHECK_LIB([sandbox], [sandbox_apply], [
 	    SSHDLIBS="$SSHDLIBS -lsandbox"
 	])
+	AC_CHECK_HEADERS([libproc.h], [
+	    AC_CHECK_DECLS([proc_pidinfo], [], [], [#include <libproc.h>])
+	])
 	;;
 *-*-dragonfly*)
 	SSHDLIBS="$SSHDLIBS -lcrypt"
