@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package envoy.config.filter.network.kafka.v1alpha1;
+
+option java_outer_classname = "KafkaSimpleProto";
+option java_multiple_files = true;
+option java_package = "io.envoyproxy.envoy.config.filter.network.kafka.v1alpha1";
+option go_package = "v1alpha1";
+
+import "validate/validate.proto";
+
+// [#protodoc-title: Simple Kafka proxy]
+// Kafka Simple :ref:`configuration overview <config_network_filters_kafka_simple>`.
+message KafkaSimple {
+  // The human readable prefix to use when emitting :ref:`statistics
+  // <config_network_filters_kafka_simple_stats>`.
+  string stat_prefix = 1 [(validate.rules).string.min_len = 1];
+  // Hostname of remote Kafka broker.
+  string broker_host = 2 [(validate.rules).string.min_len = 1];
+  // Port of the remote Kafka broker.
+  uint32 broker_port = 3 [(validate.rules).uint32 = { gte: 1 lte: 65535 }];
+}

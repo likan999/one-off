@@ -1,0 +1,97 @@
+admin:
+  access_log_path: /tmp/admin_access.log
+  address:
+    socket_address: { address: 127.0.0.1, port_value: 9901 }
+
+static_resources:
+  listeners:
+    - name: kafka-kloak794-dca1
+      address:
+        socket_address: { address: 127.0.0.1, port_value: 10000 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.kafka_simple
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.kafka.v1alpha1.KafkaSimple
+                stat_prefix: kloak794_dca1
+            - name: envoy.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
+                stat_prefix: kloak794_dca1
+                cluster: kloak-dca1-chronos
+                metadata_match:
+                  filter_metadata:
+                    envoy.lb:
+                      broker_listener: "kloak794-dca1:9092"
+    - name: kafka-kloak806-dca1
+      address:
+        socket_address: { address: 127.0.0.1, port_value: 10001 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.kafka_simple
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.kafka.v1alpha1.KafkaSimple
+                stat_prefix: kloak806_dca1
+            - name: envoy.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
+                stat_prefix: kloak806_dca1
+                cluster: kloak-dca1-chronos
+                metadata_match:
+                  filter_metadata:
+                    envoy.lb:
+                      broker_listener: "kloak806-dca1:9092"
+    - name: kafka-kloak879-dca1
+      address:
+        socket_address: { address: 127.0.0.1, port_value: 10002 }
+      filter_chains:
+        - filters:
+            - name: envoy.filters.network.kafka_simple
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.kafka.v1alpha1.KafkaSimple
+                stat_prefix: kloak879_dca1
+            - name: envoy.tcp_proxy
+              typed_config:
+                "@type": type.googleapis.com/envoy.config.filter.network.tcp_proxy.v2.TcpProxy
+                stat_prefix: kloak879_dca1
+                cluster: kloak-dca1-chronos
+                metadata_match:
+                  filter_metadata:
+                    envoy.lb:
+                      broker_listener: "kloak879-dca1:9092"
+  clusters:
+    - name: kloak-dca1-chronos
+      type: STATIC
+      connect_timeout: 5s
+      lb_policy: ROUND_ROBIN
+      load_assignment:
+        cluster_name: kloak-dca1-chronos
+        endpoints:
+          - lb_endpoints:
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: kloak794-dca1
+                      port_value: 9092
+                metadata:
+                  filter_metadata:
+                    envoy.lb:
+                      broker_listener: "kloak794-dca1:9092"
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: kloak806-dca1
+                      port_value: 9092
+                metadata:
+                  filter_metadata:
+                    envoy.lb:
+                      broker_listener: "kloak806-dca1:9092"
+              - endpoint:
+                  address:
+                    socket_address:
+                      address: kloak879-dca1
+                      port_value: 9092
+                metadata:
+                  filter_metadata:
+                    envoy.lb:
+                      broker_listener: "kloak879-dca1:9092"

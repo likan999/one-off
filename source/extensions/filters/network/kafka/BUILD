@@ -225,3 +225,23 @@ envoy_cc_library(
         "//source/common/common:macros",
     ],
 )
+
+envoy_cc_library(
+    name = "kafka_simple_lib",
+    srcs = [
+        "simple_filter.cc",
+    ],
+    deps = [
+        "//include/envoy/network:filter_interface",
+        "//include/envoy/server:filter_config_interface",
+        "//include/envoy/stats:stats_interface",
+        "//include/envoy/stats:stats_macros",
+        "//include/envoy/stats:symbol_table_interface",
+        "//source/common/buffer:buffer_lib",
+        "//source/common/common:logger_lib",
+        "//source/common/stats:symbol_table_lib",
+        "//source/extensions/filters/network:well_known_names",
+        "//source/extensions/filters/network/common:factory_base_lib",
+        "@envoy_api//envoy/config/filter/network/kafka/v1alpha1:kafka_simple_cc",
+    ],
+)
