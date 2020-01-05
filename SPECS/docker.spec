@@ -261,6 +261,7 @@ tar zxf %{SOURCE1}
 
 # untar d-s-s
 tar zxf %{SOURCE2}
+mv container-storage-setup-%{commit2} %{name}-storage-setup-%{commit2}
 
 # untar novolume-plugin
 tar zxf %{SOURCE4}
