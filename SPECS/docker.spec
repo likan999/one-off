@@ -20,8 +20,8 @@
 %global import_path %{provider}.%{provider_tld}/%{project}/%{repo}
 
 # docker
-%global git0 https://github.com/projectatomic/docker
-%global commit0 30bf0b874ebdda9b8d2a7adf36ce1dcbf5a67f1d
+%global git0 https://github.com/likan999/docker
+%global commit0 5ecaf64af7dad325d65f808321b4316b647678b1
 %global shortcommit0 %(c=%{commit0}; echo ${c:0:7})
 # docker_branch used in %%check
 %global docker_branch rhel7-1.10.3
